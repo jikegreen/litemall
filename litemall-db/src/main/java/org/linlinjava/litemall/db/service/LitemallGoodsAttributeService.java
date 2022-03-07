@@ -1,47 +1,22 @@
 package org.linlinjava.litemall.db.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.linlinjava.litemall.db.dao.LitemallGoodsAttributeMapper;
 import org.linlinjava.litemall.db.domain.LitemallGoodsAttribute;
-import org.linlinjava.litemall.db.domain.LitemallGoodsAttributeExample;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallGoodsAttributeService {
-    @Resource
-    private LitemallGoodsAttributeMapper goodsAttributeMapper;
+public class LitemallGoodsAttributeService extends CommonService<LitemallGoodsAttributeMapper, LitemallGoodsAttribute> {
 
     public List<LitemallGoodsAttribute> queryByGid(Integer goodsId) {
-        LitemallGoodsAttributeExample example = new LitemallGoodsAttributeExample();
-        example.or().andGoodsIdEqualTo(goodsId).andDeletedEqualTo(false);
-        return goodsAttributeMapper.selectByExample(example);
-    }
-
-    public void add(LitemallGoodsAttribute goodsAttribute) {
-        goodsAttribute.setAddTime(LocalDateTime.now());
-        goodsAttribute.setUpdateTime(LocalDateTime.now());
-        goodsAttributeMapper.insertSelective(goodsAttribute);
-    }
-
-    public LitemallGoodsAttribute findById(Integer id) {
-        return goodsAttributeMapper.selectByPrimaryKey(id);
+        return list(new QueryWrapper<LitemallGoodsAttribute>().eq("goods_id", goodsId).eq("deleted", false));
     }
 
     public void deleteByGid(Integer gid) {
-        LitemallGoodsAttributeExample example = new LitemallGoodsAttributeExample();
-        example.or().andGoodsIdEqualTo(gid);
-        goodsAttributeMapper.logicalDeleteByExample(example);
+        remove(new UpdateWrapper<LitemallGoodsAttribute>().eq("goods_id", gid));
     }
 
-    public void deleteById(Integer id) {
-        goodsAttributeMapper.logicalDeleteByPrimaryKey(id);
-    }
-
-    public void updateById(LitemallGoodsAttribute attribute) {
-        attribute.setUpdateTime(LocalDateTime.now());
-        goodsAttributeMapper.updateByPrimaryKeySelective(attribute);
-    }
 }

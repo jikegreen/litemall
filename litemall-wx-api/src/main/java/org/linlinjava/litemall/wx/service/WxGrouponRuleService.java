@@ -1,6 +1,5 @@
 package org.linlinjava.litemall.wx.service;
 
-import com.github.pagehelper.Page;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.db.domain.LitemallGoods;
@@ -12,6 +11,7 @@ import org.linlinjava.litemall.wx.vo.GrouponRuleVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,13 +32,9 @@ public class WxGrouponRuleService {
 
 
     public List<GrouponRuleVo> queryList(Integer page, Integer size, String sort, String order) {
-        Page<LitemallGrouponRules> grouponRulesList = (Page<LitemallGrouponRules>)grouponRulesService.queryList(page, size, sort, order);
+        List<LitemallGrouponRules> grouponRulesList = grouponRulesService.queryList(page, size, sort, order);
 
-        Page<GrouponRuleVo> grouponList = new Page<GrouponRuleVo>();
-        grouponList.setPages(grouponRulesList.getPages());
-        grouponList.setPageNum(grouponRulesList.getPageNum());
-        grouponList.setPageSize(grouponRulesList.getPageSize());
-        grouponList.setTotal(grouponRulesList.getTotal());
+        List<GrouponRuleVo> grouponList = new ArrayList<>();
 
         for (LitemallGrouponRules rule : grouponRulesList) {
             Integer goodsId = rule.getGoodsId();

@@ -68,7 +68,7 @@ public class AdminStorageController {
     @RequiresPermissionsDesc(menu = {"系统管理", "对象存储"}, button = "编辑")
     @PostMapping("/update")
     public Object update(@RequestBody LitemallStorage litemallStorage) {
-        if (litemallStorageService.update(litemallStorage) == 0) {
+        if (litemallStorageService.update(litemallStorage)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok(litemallStorage);

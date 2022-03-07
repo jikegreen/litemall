@@ -180,7 +180,7 @@ public class WxAddressController extends GetRegionService {
 			return ResponseUtil.badArgumentValue();
 		}
 
-		addressService.delete(id);
+		addressService.deleteById(id);
 		return ResponseUtil.ok();
 	}
 }

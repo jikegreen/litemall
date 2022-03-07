@@ -20,6 +20,7 @@ import org.linlinjava.litemall.core.qcode.QCodeService;
 import org.linlinjava.litemall.core.system.SystemConfig;
 import org.linlinjava.litemall.core.task.TaskService;
 import org.linlinjava.litemall.core.util.DateTimeUtil;
+import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.core.util.JacksonUtil;
 import org.linlinjava.litemall.core.util.ResponseUtil;
 import org.linlinjava.litemall.db.domain.*;
@@ -28,7 +29,6 @@ import org.linlinjava.litemall.db.util.CouponUserConstant;
 import org.linlinjava.litemall.db.util.GrouponConstant;
 import org.linlinjava.litemall.db.util.OrderHandleOption;
 import org.linlinjava.litemall.db.util.OrderUtil;
-import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.wx.task.OrderUnpaidTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -127,7 +127,7 @@ public class WxOrderService {
             return ResponseUtil.unlogin();
         }
 
-        List<Short> orderStatus = OrderUtil.orderStatus(showType);
+        List<Integer> orderStatus = OrderUtil.orderStatus(showType);
         List<LitemallOrder> orderList = orderService.queryByOrderStatus(userId, orderStatus, page, limit, sort, order);
 
         List<Map<String, Object>> orderVoList = new ArrayList<>(orderList.size());
@@ -409,7 +409,7 @@ public class WxOrderService {
             orderGoods.setPicUrl(cartGoods.getPicUrl());
             orderGoods.setPrice(cartGoods.getPrice());
             orderGoods.setNumber(cartGoods.getNumber());
-            orderGoods.setSpecifications(cartGoods.getSpecifications());
+            orderGoods.setSpecifications(JacksonUtil.toJson(cartGoods.getSpecifications()));
             orderGoods.setAddTime(LocalDateTime.now());
 
             orderGoodsService.add(orderGoods);
@@ -533,7 +533,7 @@ public class WxOrderService {
         List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
         for (LitemallOrderGoods orderGoods : orderGoodsList) {
             Integer productId = orderGoods.getProductId();
-            Short number = orderGoods.getNumber();
+            Integer number = orderGoods.getNumber();
             if (productService.addStock(productId, number) == 0) {
                 throw new RuntimeException("商品货品库存增加失败");
             }
@@ -743,7 +743,7 @@ public class WxOrderService {
                 groupon.setShareUrl(url);
             }
             groupon.setStatus(GrouponConstant.STATUS_ON);
-            if (grouponService.updateById(groupon) == 0) {
+            if (!grouponService.updateById(groupon)) {
                 return WxPayNotifyResponse.fail("更新数据已失效");
             }
 
@@ -860,7 +860,7 @@ public class WxOrderService {
             return ResponseUtil.fail(ORDER_INVALID_OPERATION, "订单不能确认收货");
         }
 
-        Short comments = orderGoodsService.getComments(orderId);
+        Integer comments = orderGoodsService.getComments(orderId);
         order.setComments(comments);
 
         order.setOrderStatus(OrderUtil.STATUS_CONFIRM);
@@ -969,7 +969,7 @@ public class WxOrderService {
         if (order == null) {
             return ResponseUtil.badArgumentValue();
         }
-        Short orderStatus = order.getOrderStatus();
+        Integer orderStatus = order.getOrderStatus();
         if (!OrderUtil.isConfirmStatus(order) && !OrderUtil.isAutoConfirmStatus(order)) {
             return ResponseUtil.fail(ORDER_INVALID_OPERATION, "当前商品不能评价");
         }
@@ -998,12 +998,12 @@ public class WxOrderService {
         // 1. 创建评价
         LitemallComment comment = new LitemallComment();
         comment.setUserId(userId);
-        comment.setType((byte) 0);
+        comment.setType(0);
         comment.setValueId(orderGoods.getGoodsId());
-        comment.setStar(star.shortValue());
+        comment.setStar(star);
         comment.setContent(content);
         comment.setHasPicture(hasPicture);
-        comment.setPicUrls(picUrls.toArray(new String[]{}));
+        comment.setPicUrls(picUrls);
         commentService.save(comment);
 
         // 2. 更新订单商品的评价列表
@@ -1011,7 +1011,7 @@ public class WxOrderService {
         orderGoodsService.updateById(orderGoods);
 
         // 3. 更新订单中未评价的订单商品可评价数量
-        Short commentCount = order.getComments();
+        Integer commentCount = order.getComments();
         if (commentCount > 0) {
             commentCount--;
         }

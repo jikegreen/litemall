@@ -1,55 +1,38 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.linlinjava.litemall.db.dao.LitemallRegionMapper;
 import org.linlinjava.litemall.db.domain.LitemallRegion;
-import org.linlinjava.litemall.db.domain.LitemallRegionExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class LitemallRegionService {
-
-    @Resource
-    private LitemallRegionMapper regionMapper;
-
+public class LitemallRegionService extends CommonService<LitemallRegionMapper, LitemallRegion> {
     public List<LitemallRegion> getAll(){
-        LitemallRegionExample example = new LitemallRegionExample();
-        byte b = 4;
-        example.or().andTypeNotEqualTo(b);
-        return regionMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallRegion>().ne("type", 4));
     }
 
     public List<LitemallRegion> queryByPid(Integer parentId) {
-        LitemallRegionExample example = new LitemallRegionExample();
-        example.or().andPidEqualTo(parentId);
-        return regionMapper.selectByExample(example);
-    }
-
-    public LitemallRegion findById(Integer id) {
-        return regionMapper.selectByPrimaryKey(id);
+        return list(new QueryWrapper<LitemallRegion>().eq("pid", parentId));
     }
 
     public List<LitemallRegion> querySelective(String name, Integer code, Integer page, Integer size, String sort, String order) {
-        LitemallRegionExample example = new LitemallRegionExample();
-        LitemallRegionExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallRegion> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(name)) {
-            criteria.andNameLike("%" + name + "%");
+            wrapper.like("name", name);
         }
         if (!StringUtils.isEmpty(code)) {
-            criteria.andCodeEqualTo(code);
+            wrapper.eq("code", code);
         }
-
         if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
+            wrapper.orderBy(Boolean.TRUE, "asc".equals(order), sort);
         }
-
-        PageHelper.startPage(page, size);
-        return regionMapper.selectByExample(example);
+        Page<LitemallRegion> pa = page(new Page<>(page, size), wrapper);
+        return pa.getSize()>0? pa.getRecords() : new ArrayList<>();
     }
 
 }

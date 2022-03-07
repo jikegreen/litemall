@@ -111,7 +111,7 @@ public class AdminAdminController {
         // 不允许管理员通过编辑接口修改密码
         admin.setPassword(null);
 
-        if (adminService.updateById(admin) == 0) {
+        if (!adminService.updateById(admin)) {
             return ResponseUtil.updatedDataFailed();
         }
 

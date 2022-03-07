@@ -17,12 +17,13 @@ import org.linlinjava.litemall.core.util.ResponseUtil;
 import org.linlinjava.litemall.core.validator.Order;
 import org.linlinjava.litemall.core.validator.Sort;
 import org.linlinjava.litemall.db.domain.LitemallAftersale;
-import org.linlinjava.litemall.db.domain.LitemallGoodsProduct;
 import org.linlinjava.litemall.db.domain.LitemallOrder;
 import org.linlinjava.litemall.db.domain.LitemallOrderGoods;
-import org.linlinjava.litemall.db.service.*;
+import org.linlinjava.litemall.db.service.LitemallAftersaleService;
+import org.linlinjava.litemall.db.service.LitemallGoodsProductService;
+import org.linlinjava.litemall.db.service.LitemallOrderGoodsService;
+import org.linlinjava.litemall.db.service.LitemallOrderService;
 import org.linlinjava.litemall.db.util.AftersaleConstant;
-import org.linlinjava.litemall.db.util.OrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -75,7 +76,7 @@ public class AdminAftersaleController {
         if(aftersaleOne == null){
             return ResponseUtil.fail(AdminResponseCode.AFTERSALE_NOT_ALLOWED, "售后不存在");
         }
-        Short status = aftersaleOne.getStatus();
+        Integer status = aftersaleOne.getStatus();
         if(!status.equals(AftersaleConstant.STATUS_REQUEST)){
             return ResponseUtil.fail(AdminResponseCode.AFTERSALE_NOT_ALLOWED, "售后不能进行审核通过操作");
         }
@@ -102,7 +103,7 @@ public class AdminAftersaleController {
             if(aftersale == null){
                 continue;
             }
-            Short status = aftersale.getStatus();
+            Integer status = aftersale.getStatus();
             if(!status.equals(AftersaleConstant.STATUS_REQUEST)){
                 continue;
             }
@@ -125,7 +126,7 @@ public class AdminAftersaleController {
         if(aftersaleOne == null){
             return ResponseUtil.badArgumentValue();
         }
-        Short status = aftersaleOne.getStatus();
+        Integer status = aftersaleOne.getStatus();
         if(!status.equals(AftersaleConstant.STATUS_REQUEST)){
             return ResponseUtil.fail(AdminResponseCode.AFTERSALE_NOT_ALLOWED, "售后不能进行审核拒绝操作");
         }
@@ -148,7 +149,7 @@ public class AdminAftersaleController {
             if(aftersale == null){
                 continue;
             }
-            Short status = aftersale.getStatus();
+            Integer status = aftersale.getStatus();
             if(!status.equals(AftersaleConstant.STATUS_REQUEST)){
                 continue;
             }
@@ -215,7 +216,7 @@ public class AdminAftersaleController {
             List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
             for (LitemallOrderGoods orderGoods : orderGoodsList) {
                 Integer productId = orderGoods.getProductId();
-                Short number = orderGoods.getNumber();
+                Integer number = orderGoods.getNumber();
                 goodsProductService.addStock(productId, number);
             }
         }

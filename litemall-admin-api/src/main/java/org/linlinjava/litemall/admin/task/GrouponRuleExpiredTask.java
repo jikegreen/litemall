@@ -45,7 +45,7 @@ public class GrouponRuleExpiredTask extends Task {
         List<LitemallGroupon> grouponList = grouponService.queryByRuleId(grouponRuleId);
         // 用户团购处理
         for(LitemallGroupon groupon : grouponList){
-            Short status = groupon.getStatus();
+            Integer status = groupon.getStatus();
             LitemallOrder order = orderService.findById(groupon.getOrderId());
             if(status.equals(GrouponConstant.STATUS_NONE)){
                 groupon.setStatus(GrouponConstant.STATUS_FAIL);

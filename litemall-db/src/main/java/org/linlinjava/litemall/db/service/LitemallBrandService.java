@@ -1,79 +1,36 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.linlinjava.litemall.db.dao.LitemallBrandMapper;
 import org.linlinjava.litemall.db.domain.LitemallBrand;
-import org.linlinjava.litemall.db.domain.LitemallBrand.Column;
-import org.linlinjava.litemall.db.domain.LitemallBrandExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallBrandService {
-    @Resource
-    private LitemallBrandMapper brandMapper;
-    private Column[] columns = new Column[]{Column.id, Column.name, Column.desc, Column.picUrl, Column.floorPrice};
+public class LitemallBrandService extends CommonService<LitemallBrandMapper, LitemallBrand> {
+    private String[] columns = {"id", "name", "`desc`", "pic_url", "floor_price"};
 
     public List<LitemallBrand> query(Integer page, Integer limit, String sort, String order) {
-        LitemallBrandExample example = new LitemallBrandExample();
-        example.or().andDeletedEqualTo(false);
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-        PageHelper.startPage(page, limit);
-        return brandMapper.selectByExampleSelective(example, columns);
+        QueryWrapper<LitemallBrand> wrapper = new QueryWrapper<>();
+        wrapper.select(columns);
+        return paging(wrapper, page, limit, sort, order);
     }
 
     public List<LitemallBrand> query(Integer page, Integer limit) {
         return query(page, limit, null, null);
     }
 
-    public LitemallBrand findById(Integer id) {
-        return brandMapper.selectByPrimaryKey(id);
-    }
-
     public List<LitemallBrand> querySelective(String id, String name, Integer page, Integer size, String sort, String order) {
-        LitemallBrandExample example = new LitemallBrandExample();
-        LitemallBrandExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallBrand> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(id)) {
-            criteria.andIdEqualTo(Integer.valueOf(id));
+            wrapper.eq("id", Integer.valueOf(id));
         }
         if (!StringUtils.isEmpty(name)) {
-            criteria.andNameLike("%" + name + "%");
+            wrapper.like("name", name);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, size);
-        return brandMapper.selectByExample(example);
+        return paging(wrapper, page, size, sort, order);
     }
 
-    public int updateById(LitemallBrand brand) {
-        brand.setUpdateTime(LocalDateTime.now());
-        return brandMapper.updateByPrimaryKeySelective(brand);
-    }
-
-    public void deleteById(Integer id) {
-        brandMapper.logicalDeleteByPrimaryKey(id);
-    }
-
-    public void add(LitemallBrand brand) {
-        brand.setAddTime(LocalDateTime.now());
-        brand.setUpdateTime(LocalDateTime.now());
-        brandMapper.insertSelective(brand);
-    }
-
-    public List<LitemallBrand> all() {
-        LitemallBrandExample example = new LitemallBrandExample();
-        example.or().andDeletedEqualTo(false);
-        return brandMapper.selectByExample(example);
-    }
 }

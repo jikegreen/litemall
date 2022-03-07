@@ -22,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -136,7 +135,7 @@ public class AdminGrouponController {
         grouponRules.setGoodsName(goods.getName());
         grouponRules.setPicUrl(goods.getPicUrl());
 
-        if (rulesService.updateById(grouponRules) == 0) {
+        if (!rulesService.updateById(grouponRules)) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -184,7 +183,7 @@ public class AdminGrouponController {
             return ResponseUtil.badArgument();
         }
 
-        rulesService.delete(id);
+        rulesService.deleteById(id);
         return ResponseUtil.ok();
     }
 }

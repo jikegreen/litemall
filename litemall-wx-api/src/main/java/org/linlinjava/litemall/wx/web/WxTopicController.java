@@ -71,7 +71,7 @@ public class WxTopicController {
             if (null != good)
                 goods.add(good);
         }
-        
+
 		// 用户收藏
 		int userHasCollect = 0;
 		if (userId != null) {

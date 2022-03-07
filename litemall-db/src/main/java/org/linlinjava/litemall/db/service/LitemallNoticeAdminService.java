@@ -1,130 +1,71 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.linlinjava.litemall.db.dao.LitemallNoticeAdminMapper;
-import org.linlinjava.litemall.db.domain.*;
+import org.linlinjava.litemall.db.domain.LitemallNoticeAdmin;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallNoticeAdminService {
-    @Resource
-    private LitemallNoticeAdminMapper noticeAdminMapper;
-
+public class LitemallNoticeAdminService extends CommonService<LitemallNoticeAdminMapper, LitemallNoticeAdmin> {
     public List<LitemallNoticeAdmin> querySelective(String title, String type, Integer adminId, Integer page, Integer limit, String sort, String order) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        LitemallNoticeAdminExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallNoticeAdmin> wrapper = new QueryWrapper<>();
         if(!StringUtils.isEmpty(title)){
-            criteria.andNoticeTitleLike("%" + title + "%");
+            wrapper.like("notice_title", title);
         }
-
         if(type.equals("read")){
-         criteria.andReadTimeIsNotNull();
+         wrapper.isNotNull("read_time");
         }
         else if(type.equals("unread")){
-            criteria.andReadTimeIsNull();
+            wrapper.isNull("read_time");
         }
-        criteria.andAdminIdEqualTo(adminId);
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, limit);
-        return noticeAdminMapper.selectByExample(example);
+        wrapper.eq("admin_id", adminId);
+        return paging(wrapper, page, limit, sort, order);
     }
 
     public LitemallNoticeAdmin find(Integer noticeId, Integer adminId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdEqualTo(noticeId).andAdminIdEqualTo(adminId).andDeletedEqualTo(false);
-        return noticeAdminMapper.selectOneByExample(example);
-    }
-
-    public void add(LitemallNoticeAdmin noticeAdmin) {
-        noticeAdmin.setAddTime(LocalDateTime.now());
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdminMapper.insertSelective(noticeAdmin);
-    }
-
-    public void update(LitemallNoticeAdmin noticeAdmin) {
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdminMapper.updateByPrimaryKeySelective(noticeAdmin);
+        return getOne(new QueryWrapper<LitemallNoticeAdmin>().eq("notice_id", noticeId).eq("admin_id", adminId).eq("deleted", false));
     }
 
     public void markReadByIds(List<Integer> ids, Integer adminId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andIdIn(ids).andAdminIdEqualTo(adminId).andDeletedEqualTo(false);
-        LitemallNoticeAdmin noticeAdmin = new LitemallNoticeAdmin();
         LocalDateTime now = LocalDateTime.now();
-        noticeAdmin.setReadTime(now);
-        noticeAdmin.setUpdateTime(now);
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(new UpdateWrapper<LitemallNoticeAdmin>().set("read_time", now).set("update_time", now).in("id", ids).eq("admin_id", adminId).eq("deleted", false));
     }
 
     public void deleteById(Integer id, Integer adminId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andIdEqualTo(id).andAdminIdEqualTo(adminId).andDeletedEqualTo(false);
-        LitemallNoticeAdmin noticeAdmin = new LitemallNoticeAdmin();
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdmin.setDeleted(true);
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(new UpdateWrapper<LitemallNoticeAdmin>().set("update_time", LocalDateTime.now()).set("deleted", Boolean.TRUE).eq("id", id).eq("admin_id", adminId).eq("deleted", false));
     }
 
     public void deleteByIds(List<Integer> ids, Integer adminId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andIdIn(ids).andAdminIdEqualTo(adminId).andDeletedEqualTo(false);
-        LitemallNoticeAdmin noticeAdmin = new LitemallNoticeAdmin();
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdmin.setDeleted(true);
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(new UpdateWrapper<LitemallNoticeAdmin>().set("update_time", LocalDateTime.now()).set("deleted", Boolean.TRUE).in("id", ids).eq("admin_id", adminId).eq("deleted", false));
     }
 
     public int countUnread(Integer adminId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andAdminIdEqualTo(adminId).andReadTimeIsNull().andDeletedEqualTo(false);
-        return (int)noticeAdminMapper.countByExample(example);
+        return (int)count(new QueryWrapper<LitemallNoticeAdmin>().eq("admin_id", adminId).isNull("read_time").eq("deleted", false));
     }
 
     public List<LitemallNoticeAdmin> queryByNoticeId(Integer noticeId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdEqualTo(noticeId).andDeletedEqualTo(false);
-        return noticeAdminMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallNoticeAdmin>().eq("notice_id", noticeId).eq("deleted", false));
     }
 
     public void deleteByNoticeId(Integer id) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdEqualTo(id).andDeletedEqualTo(false);
-        LitemallNoticeAdmin noticeAdmin = new LitemallNoticeAdmin();
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdmin.setDeleted(true);
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(new UpdateWrapper<LitemallNoticeAdmin>().set("update_time", LocalDateTime.now()).set("deleted", Boolean.TRUE).eq("notice_id", id).eq("deleted", false));
     }
 
     public void deleteByNoticeIds(List<Integer> ids) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdIn(ids).andDeletedEqualTo(false);
-        LitemallNoticeAdmin noticeAdmin = new LitemallNoticeAdmin();
-        noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdmin.setDeleted(true);
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(new UpdateWrapper<LitemallNoticeAdmin>().set("update_time", LocalDateTime.now()).set("deleted", Boolean.TRUE).in("notice_id", ids).eq("deleted", false));
     }
 
     public int countReadByNoticeId(Integer noticeId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdEqualTo(noticeId).andReadTimeIsNotNull().andDeletedEqualTo(false);
-        return (int)noticeAdminMapper.countByExample(example);
+        return (int)count(new QueryWrapper<LitemallNoticeAdmin>().eq("notice_id", noticeId).eq("deleted", false).isNotNull("read_time"));
     }
 
     public void updateByNoticeId(LitemallNoticeAdmin noticeAdmin, Integer noticeId) {
-        LitemallNoticeAdminExample example = new LitemallNoticeAdminExample();
-        example.or().andNoticeIdEqualTo(noticeId).andDeletedEqualTo(false);
         noticeAdmin.setUpdateTime(LocalDateTime.now());
-        noticeAdminMapper.updateByExampleSelective(noticeAdmin, example);
+        update(noticeAdmin, new UpdateWrapper<LitemallNoticeAdmin>().eq("notice_id", noticeId).eq("deleted", false));
     }
 }

@@ -46,7 +46,7 @@ public class AdminCouponController {
     @RequiresPermissions("admin:coupon:listuser")
     @RequiresPermissionsDesc(menu = {"推广管理", "优惠券管理"}, button = "查询用户")
     @GetMapping("/listuser")
-    public Object listuser(Integer userId, Integer couponId, Short status,
+    public Object listuser(Integer userId, Integer couponId, Integer status,
                            @RequestParam(defaultValue = "1") Integer page,
                            @RequestParam(defaultValue = "10") Integer limit,
                            @Sort @RequestParam(defaultValue = "add_time") String sort,
@@ -99,7 +99,7 @@ public class AdminCouponController {
         if (error != null) {
             return error;
         }
-        if (couponService.updateById(coupon) == 0) {
+        if (!couponService.updateById(coupon)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok(coupon);

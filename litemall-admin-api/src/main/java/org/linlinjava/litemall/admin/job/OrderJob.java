@@ -76,7 +76,7 @@ public class OrderJob {
 
         List<LitemallOrder> orderList = orderService.queryComment(SystemConfig.getOrderComment());
         for (LitemallOrder order : orderList) {
-            order.setComments((short) 0);
+            order.setComments(0);
             orderService.updateWithOptimisticLocker(order);
 
             List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(order.getId());

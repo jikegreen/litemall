@@ -6,7 +6,6 @@ import org.linlinjava.litemall.db.util.CouponConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -34,12 +33,12 @@ public class CouponAssignService {
                 continue;
             }
 
-            Short limit = coupon.getLimit();
+            Integer limit = coupon.getLimit();
             while(limit > 0){
                 LitemallCouponUser couponUser = new LitemallCouponUser();
                 couponUser.setCouponId(couponId);
                 couponUser.setUserId(userId);
-                Short timeType = coupon.getTimeType();
+                Integer timeType = coupon.getTimeType();
                 if (timeType.equals(CouponConstant.TIME_TYPE_TIME)) {
                     couponUser.setStartTime(coupon.getStartTime());
                     couponUser.setEndTime(coupon.getEndTime());

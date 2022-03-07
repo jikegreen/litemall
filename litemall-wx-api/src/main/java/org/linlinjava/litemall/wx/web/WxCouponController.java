@@ -76,7 +76,7 @@ public class WxCouponController {
      */
     @GetMapping("mylist")
     public Object mylist(@LoginUser Integer userId,
-                       Short status,
+                       Integer status,
                        @RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit,
                        @Sort @RequestParam(defaultValue = "add_time") String sort,
@@ -205,7 +205,7 @@ public class WxCouponController {
 
         // 优惠券分发类型
         // 例如注册赠券类型的优惠券不能领取
-        Short type = coupon.getType();
+        Integer type = coupon.getType();
         if(type.equals(CouponConstant.TYPE_REGISTER)){
             return ResponseUtil.fail(WxResponseCode.COUPON_RECEIVE_FAIL, "新用户优惠券自动发送");
         }
@@ -217,7 +217,7 @@ public class WxCouponController {
         }
 
         // 优惠券状态，已下架或者过期不能领取
-        Short status = coupon.getStatus();
+        Integer status = coupon.getStatus();
         if(status.equals(CouponConstant.STATUS_OUT)){
             return ResponseUtil.fail(WxResponseCode.COUPON_EXCEED_LIMIT, "优惠券已领完");
         }
@@ -229,7 +229,7 @@ public class WxCouponController {
         LitemallCouponUser couponUser = new LitemallCouponUser();
         couponUser.setCouponId(couponId);
         couponUser.setUserId(userId);
-        Short timeType = coupon.getTimeType();
+        Integer timeType = coupon.getTimeType();
         if (timeType.equals(CouponConstant.TIME_TYPE_TIME)) {
             couponUser.setStartTime(coupon.getStartTime());
             couponUser.setEndTime(coupon.getEndTime());
@@ -284,7 +284,7 @@ public class WxCouponController {
 
         // 优惠券分发类型
         // 例如注册赠券类型的优惠券不能领取
-        Short type = coupon.getType();
+        Integer type = coupon.getType();
         if(type.equals(CouponConstant.TYPE_REGISTER)){
             return ResponseUtil.fail(WxResponseCode.COUPON_RECEIVE_FAIL, "新用户优惠券自动发送");
         }
@@ -296,7 +296,7 @@ public class WxCouponController {
         }
 
         // 优惠券状态，已下架或者过期不能领取
-        Short status = coupon.getStatus();
+        Integer status = coupon.getStatus();
         if(status.equals(CouponConstant.STATUS_OUT)){
             return ResponseUtil.fail(WxResponseCode.COUPON_EXCEED_LIMIT, "优惠券已兑换");
         }
@@ -308,7 +308,7 @@ public class WxCouponController {
         LitemallCouponUser couponUser = new LitemallCouponUser();
         couponUser.setCouponId(couponId);
         couponUser.setUserId(userId);
-        Short timeType = coupon.getTimeType();
+        Integer timeType = coupon.getTimeType();
         if (timeType.equals(CouponConstant.TIME_TYPE_TIME)) {
             couponUser.setStartTime(coupon.getStartTime());
             couponUser.setEndTime(coupon.getEndTime());

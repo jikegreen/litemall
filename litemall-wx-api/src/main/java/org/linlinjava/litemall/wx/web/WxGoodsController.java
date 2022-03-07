@@ -1,6 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
-import com.github.pagehelper.PageInfo;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.system.SystemConfig;
@@ -120,10 +120,10 @@ public class WxGoodsController {
 
 		// 评论
 		Callable<Map> commentsCallable = () -> {
-			List<LitemallComment> comments = commentService.queryGoodsByGid(id, 0, 2);
-			List<Map<String, Object>> commentsVo = new ArrayList<>(comments.size());
-			long commentCount = PageInfo.of(comments).getTotal();
-			for (LitemallComment comment : comments) {
+			Page<LitemallComment> comments = commentService.queryGoodsByGid(id, 0, 2);
+			List<Map<String, Object>> commentsVo = new ArrayList<>();
+			long commentCount = comments.getTotal();
+			for (LitemallComment comment : comments.getRecords()) {
 				Map<String, Object> c = new HashMap<>();
 				c.put("id", comment.getId());
 				c.put("addTime", comment.getAddTime());
@@ -264,11 +264,11 @@ public class WxGoodsController {
 			searchHistoryVo.setKeyword(keyword);
 			searchHistoryVo.setUserId(userId);
 			searchHistoryVo.setFrom("wx");
-			searchHistoryService.save(searchHistoryVo);
+			searchHistoryService.add(searchHistoryVo);
 		}
 
 		//查询列表数据
-		List<LitemallGoods> goodsList = goodsService.querySelective(categoryId, brandId, keyword, isHot, isNew, page, limit, sort, order);
+		Page<LitemallGoods> goodsList = goodsService.query(categoryId, brandId, keyword, isHot, isNew, page, limit, sort, order);
 
 		// 查询商品所属类目列表。
 		List<Integer> goodsCatIds = goodsService.getCatIds(brandId, keyword, isHot, isNew);
@@ -279,14 +279,12 @@ public class WxGoodsController {
 			categoryList = new ArrayList<>(0);
 		}
 
-		PageInfo<LitemallGoods> pagedList = PageInfo.of(goodsList);
-
 		Map<String, Object> entity = new HashMap<>();
-		entity.put("list", goodsList);
-		entity.put("total", pagedList.getTotal());
-		entity.put("page", pagedList.getPageNum());
-		entity.put("limit", pagedList.getPageSize());
-		entity.put("pages", pagedList.getPages());
+		entity.put("list", goodsList.getRecords());
+		entity.put("total", goodsList.getTotal());
+		entity.put("page", goodsList.getCurrent());
+		entity.put("limit", goodsList.getSize());
+		entity.put("pages", goodsList.getPages());
 		entity.put("filterCategoryList", categoryList);
 
 		// 因为这里需要返回额外的filterCategoryList参数，因此不能方便使用ResponseUtil.okList

@@ -156,7 +156,7 @@ public class AdminOrderService {
         List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
         for (LitemallOrderGoods orderGoods : orderGoodsList) {
             Integer productId = orderGoods.getProductId();
-            Short number = orderGoods.getNumber();
+            Integer number = orderGoods.getNumber();
             if (productService.addStock(productId, number) == 0) {
                 throw new RuntimeException("商品货品库存增加失败");
             }
@@ -244,7 +244,7 @@ public class AdminOrderService {
         }
 
         // 如果订单不是关闭状态(已取消、系统取消、已退款、用户已确认、系统已确认)，则不能删除
-        Short status = order.getOrderStatus();
+        Integer status = order.getOrderStatus();
         if (!status.equals(OrderUtil.STATUS_CANCEL) && !status.equals(OrderUtil.STATUS_AUTO_CANCEL) &&
                 !status.equals(OrderUtil.STATUS_CONFIRM) &&!status.equals(OrderUtil.STATUS_AUTO_CONFIRM) &&
                 !status.equals(OrderUtil.STATUS_REFUND_CONFIRM)) {

@@ -141,7 +141,7 @@ public class WxAftersaleController {
         if(aftersale.getAmount().compareTo(amount) > 0){
             return ResponseUtil.fail(WxResponseCode.AFTERSALE_INVALID_AMOUNT, "退款金额不正确");
         }
-        Short afterStatus = order.getAftersaleStatus();
+        Integer afterStatus = order.getAftersaleStatus();
         if(afterStatus.equals(AftersaleConstant.STATUS_RECEPT) || afterStatus.equals(AftersaleConstant.STATUS_REFUND)){
             return ResponseUtil.fail(WxResponseCode.AFTERSALE_INVALID_AMOUNT, "已申请售后");
         }
@@ -177,7 +177,7 @@ public class WxAftersaleController {
         if(id == null){
             return ResponseUtil.badArgument();
         }
-        LitemallAftersale aftersaleOne = aftersaleService.findById(userId, id);
+        LitemallAftersale aftersaleOne = aftersaleService.findById(id, Boolean.FALSE);
         if(aftersaleOne == null){
             return ResponseUtil.badArgument();
         }
@@ -192,7 +192,7 @@ public class WxAftersaleController {
         if(!OrderUtil.isConfirmStatus(order) && !OrderUtil.isAutoConfirmStatus(order)){
             return ResponseUtil.fail(WxResponseCode.AFTERSALE_UNALLOWED, "不支持售后");
         }
-        Short afterStatus = order.getAftersaleStatus();
+        Integer afterStatus = order.getAftersaleStatus();
         if(!afterStatus.equals(AftersaleConstant.STATUS_REQUEST)){
             return ResponseUtil.fail(WxResponseCode.AFTERSALE_INVALID_STATUS, "不能取消售后");
         }
@@ -207,7 +207,7 @@ public class WxAftersaleController {
     }
 
     private Object validate(LitemallAftersale aftersale) {
-        Short type = aftersale.getType();
+        Integer type = aftersale.getType();
         if (type == null) {
             return ResponseUtil.badArgument();
         }

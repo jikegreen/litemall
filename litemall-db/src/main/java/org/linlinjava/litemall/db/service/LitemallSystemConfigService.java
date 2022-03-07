@@ -1,38 +1,30 @@
 package org.linlinjava.litemall.db.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.linlinjava.litemall.db.dao.LitemallSystemMapper;
 import org.linlinjava.litemall.db.domain.LitemallSystem;
-import org.linlinjava.litemall.db.domain.LitemallSystemExample;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class LitemallSystemConfigService {
-    @Resource
-    private LitemallSystemMapper systemMapper;
+public class LitemallSystemConfigService extends CommonService<LitemallSystemMapper, LitemallSystem> {
 
     public Map<String, String> queryAll() {
-        LitemallSystemExample example = new LitemallSystemExample();
-        example.or().andDeletedEqualTo(false);
-
-        List<LitemallSystem> systemList = systemMapper.selectByExample(example);
+        List<LitemallSystem> systemList = all();
         Map<String, String> systemConfigs = new HashMap<>();
         for (LitemallSystem item : systemList) {
             systemConfigs.put(item.getKeyName(), item.getKeyValue());
         }
-
         return systemConfigs;
     }
 
     public Map<String, String> listMail() {
-        LitemallSystemExample example = new LitemallSystemExample();
-        example.or().andKeyNameLike("litemall_mall_%").andDeletedEqualTo(false);
-        List<LitemallSystem> systemList = systemMapper.selectByExample(example);
+        List<LitemallSystem> systemList = list(new QueryWrapper<LitemallSystem>().likeRight("key_name", "litemall_mall_").eq("deleted", false));
         Map<String, String> data = new HashMap<>();
         for(LitemallSystem system : systemList){
             data.put(system.getKeyName(), system.getKeyValue());
@@ -41,9 +33,7 @@ public class LitemallSystemConfigService {
     }
 
     public Map<String, String> listWx() {
-        LitemallSystemExample example = new LitemallSystemExample();
-        example.or().andKeyNameLike("litemall_wx_%").andDeletedEqualTo(false);
-        List<LitemallSystem> systemList = systemMapper.selectByExample(example);
+        List<LitemallSystem> systemList = list(new QueryWrapper<LitemallSystem>().likeRight("key_name", "litemall_wx_").eq("deleted", false));
         Map<String, String> data = new HashMap<>();
         for(LitemallSystem system : systemList){
             data.put(system.getKeyName(), system.getKeyValue());
@@ -52,9 +42,7 @@ public class LitemallSystemConfigService {
     }
 
     public Map<String, String> listOrder() {
-        LitemallSystemExample example = new LitemallSystemExample();
-        example.or().andKeyNameLike("litemall_order_%").andDeletedEqualTo(false);
-        List<LitemallSystem> systemList = systemMapper.selectByExample(example);
+        List<LitemallSystem> systemList = list(new QueryWrapper<LitemallSystem>().likeRight("key_name", "litemall_order_").eq("deleted", false));
         Map<String, String> data = new HashMap<>();
         for(LitemallSystem system : systemList){
             data.put(system.getKeyName(), system.getKeyValue());
@@ -63,9 +51,7 @@ public class LitemallSystemConfigService {
     }
 
     public Map<String, String> listExpress() {
-        LitemallSystemExample example = new LitemallSystemExample();
-        example.or().andKeyNameLike("litemall_express_%").andDeletedEqualTo(false);
-        List<LitemallSystem> systemList = systemMapper.selectByExample(example);
+        List<LitemallSystem> systemList = list(new QueryWrapper<LitemallSystem>().likeRight("key_name", "litemall_express_").eq("deleted", false));
         Map<String, String> data = new HashMap<>();
         for(LitemallSystem system : systemList){
             data.put(system.getKeyName(), system.getKeyValue());
@@ -75,16 +61,8 @@ public class LitemallSystemConfigService {
 
     public void updateConfig(Map<String, String> data) {
         for (Map.Entry<String, String> entry : data.entrySet()) {
-            LitemallSystemExample example = new LitemallSystemExample();
-            example.or().andKeyNameEqualTo(entry.getKey()).andDeletedEqualTo(false);
-
-            LitemallSystem system = new LitemallSystem();
-            system.setKeyName(entry.getKey());
-            system.setKeyValue(entry.getValue());
-            system.setUpdateTime(LocalDateTime.now());
-            systemMapper.updateByExampleSelective(system, example);
+            update(new UpdateWrapper<LitemallSystem>().set("key_name", entry.getKey()).set("key_value", entry.getValue()).set("update_time", LocalDateTime.now()).eq("key_name", entry.getKey()).eq("deleted", false));
         }
-
     }
 
     public void addConfig(String key, String value) {
@@ -93,6 +71,6 @@ public class LitemallSystemConfigService {
         system.setKeyValue(value);
         system.setAddTime(LocalDateTime.now());
         system.setUpdateTime(LocalDateTime.now());
-        systemMapper.insertSelective(system);
+        save(system);
     }
 }

@@ -1,5 +1,7 @@
 package org.linlinjava.litemall.db.dao;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.apache.ibatis.annotations.Param;
 import org.linlinjava.litemall.db.domain.LitemallOrder;
 import org.linlinjava.litemall.db.domain.OrderVo;
@@ -10,6 +12,6 @@ import java.util.Map;
 
 public interface OrderMapper {
     int updateWithOptimisticLocker(@Param("lastUpdateTime") LocalDateTime lastUpdateTime, @Param("order") LitemallOrder order);
-    List<Map> getOrderIds(@Param("query") String query, @Param("orderByClause") String orderByClause);
+    IPage<Map> getOrderIds(Page page, @Param("query") String query, @Param("orderByClause") String orderByClause);
     List<OrderVo> getOrderList(@Param("query") String query, @Param("orderByClause") String orderByClause);
 }

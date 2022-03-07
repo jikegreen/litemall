@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -48,7 +49,7 @@ public class WxCommentController {
             return ResponseUtil.badArgument();
         }
 
-        Short star = comment.getStar();
+        Integer star = comment.getStar();
         if (star == null) {
             return ResponseUtil.badArgument();
         }
@@ -56,7 +57,7 @@ public class WxCommentController {
             return ResponseUtil.badArgumentValue();
         }
 
-        Byte type = comment.getType();
+        Integer type = comment.getType();
         Integer valueId = comment.getValueId();
         if (type == null || valueId == null) {
             return ResponseUtil.badArgument();
@@ -74,7 +75,7 @@ public class WxCommentController {
         }
         Boolean hasPicture = comment.getHasPicture();
         if (hasPicture == null || !hasPicture) {
-            comment.setPicUrls(new String[0]);
+            comment.setPicUrls(Lists.newArrayList());
         }
         return null;
     }

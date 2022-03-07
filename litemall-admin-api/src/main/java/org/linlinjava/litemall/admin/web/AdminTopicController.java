@@ -1,6 +1,5 @@
 package org.linlinjava.litemall.admin.web;
 
-import io.swagger.models.auth.In;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
@@ -81,9 +80,9 @@ public class AdminTopicController {
     @GetMapping("/read")
     public Object read(@NotNull Integer id) {
         LitemallTopic topic = topicService.findById(id);
-        Integer[] goodsIds = topic.getGoods();
+        List<Integer> goodsIds = topic.getGoods();
         List<LitemallGoods> goodsList = null;
-        if (goodsIds == null || goodsIds.length == 0) {
+        if (goodsIds == null || goodsIds.size() == 0) {
             goodsList = new ArrayList<>();
         } else {
             goodsList = goodsService.queryByIds(goodsIds);
@@ -102,7 +101,7 @@ public class AdminTopicController {
         if (error != null) {
             return error;
         }
-        if (topicService.updateById(topic) == 0) {
+        if (!topicService.updateById(topic)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok(topic);

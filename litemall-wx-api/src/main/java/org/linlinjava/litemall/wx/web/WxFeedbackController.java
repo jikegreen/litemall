@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -47,7 +48,7 @@ public class WxFeedbackController {
 
         Boolean hasPicture = feedback.getHasPicture();
         if (hasPicture == null || !hasPicture) {
-            feedback.setPicUrls(new String[0]);
+            feedback.setPicUrls(Lists.newArrayList());
         }
 
         // 测试手机号码是否正确

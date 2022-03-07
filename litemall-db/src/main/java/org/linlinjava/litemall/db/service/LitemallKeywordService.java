@@ -1,77 +1,36 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.linlinjava.litemall.db.dao.LitemallKeywordMapper;
 import org.linlinjava.litemall.db.domain.LitemallKeyword;
-import org.linlinjava.litemall.db.domain.LitemallKeywordExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallKeywordService {
-    @Resource
-    private LitemallKeywordMapper keywordsMapper;
-
+public class LitemallKeywordService extends CommonService<LitemallKeywordMapper, LitemallKeyword> {
     public LitemallKeyword queryDefault() {
-        LitemallKeywordExample example = new LitemallKeywordExample();
-        example.or().andIsDefaultEqualTo(true).andDeletedEqualTo(false);
-        return keywordsMapper.selectOneByExample(example);
+        return getOne(new QueryWrapper<LitemallKeyword>().eq("is_default", true).eq("deleted", false));
     }
 
     public List<LitemallKeyword> queryHots() {
-        LitemallKeywordExample example = new LitemallKeywordExample();
-        example.or().andIsHotEqualTo(true).andDeletedEqualTo(false);
-        return keywordsMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallKeyword>().eq("is_hot", true).eq("deleted", false));
     }
 
     public List<LitemallKeyword> queryByKeyword(String keyword, Integer page, Integer limit) {
-        LitemallKeywordExample example = new LitemallKeywordExample();
-        example.setDistinct(true);
-        example.or().andKeywordLike("%" + keyword + "%").andDeletedEqualTo(false);
-        PageHelper.startPage(page, limit);
-        return keywordsMapper.selectByExampleSelective(example, LitemallKeyword.Column.keyword);
+        return paging(new QueryWrapper<LitemallKeyword>().select("Distinct keyword, *").like("keyword", keyword).eq("deleted", false), page, limit, null, null);
     }
 
     public List<LitemallKeyword> querySelective(String keyword, String url, Integer page, Integer limit, String sort, String order) {
-        LitemallKeywordExample example = new LitemallKeywordExample();
-        LitemallKeywordExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallKeyword> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(keyword)) {
-            criteria.andKeywordLike("%" + keyword + "%");
+            wrapper.like("keyword", keyword);
         }
         if (!StringUtils.isEmpty(url)) {
-            criteria.andUrlLike("%" + url + "%");
+            wrapper.like("url", url);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, limit);
-        return keywordsMapper.selectByExample(example);
+        return paging(wrapper, page, limit, sort, order);
     }
 
-    public void add(LitemallKeyword keywords) {
-        keywords.setAddTime(LocalDateTime.now());
-        keywords.setUpdateTime(LocalDateTime.now());
-        keywordsMapper.insertSelective(keywords);
-    }
-
-    public LitemallKeyword findById(Integer id) {
-        return keywordsMapper.selectByPrimaryKey(id);
-    }
-
-    public int updateById(LitemallKeyword keywords) {
-        keywords.setUpdateTime(LocalDateTime.now());
-        return keywordsMapper.updateByPrimaryKeySelective(keywords);
-    }
-
-    public void deleteById(Integer id) {
-        keywordsMapper.logicalDeleteByPrimaryKey(id);
-    }
 }

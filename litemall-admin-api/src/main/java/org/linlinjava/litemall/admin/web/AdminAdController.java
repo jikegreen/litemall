@@ -78,7 +78,7 @@ public class AdminAdController {
         if (error != null) {
             return error;
         }
-        if (adService.updateById(ad) == 0) {
+        if (!adService.updateById(ad)) {
             return ResponseUtil.updatedDataFailed();
         }
 

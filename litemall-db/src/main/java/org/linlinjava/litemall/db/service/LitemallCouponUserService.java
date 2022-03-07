@@ -1,63 +1,41 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.linlinjava.litemall.db.dao.LitemallCouponUserMapper;
 import org.linlinjava.litemall.db.domain.LitemallCouponUser;
-import org.linlinjava.litemall.db.domain.LitemallCouponUserExample;
 import org.linlinjava.litemall.db.util.CouponUserConstant;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
-public class LitemallCouponUserService {
-    @Resource
-    private LitemallCouponUserMapper couponUserMapper;
+public class LitemallCouponUserService extends CommonService<LitemallCouponUserMapper, LitemallCouponUser> {
 
     public Integer countCoupon(Integer couponId) {
-        LitemallCouponUserExample example = new LitemallCouponUserExample();
-        example.or().andCouponIdEqualTo(couponId).andDeletedEqualTo(false);
-        return (int)couponUserMapper.countByExample(example);
+        return (int)count(new QueryWrapper<LitemallCouponUser>().eq("coupon_id", couponId).eq("deleted", false));
     }
 
     public Integer countUserAndCoupon(Integer userId, Integer couponId) {
-        LitemallCouponUserExample example = new LitemallCouponUserExample();
-        example.or().andUserIdEqualTo(userId).andCouponIdEqualTo(couponId).andDeletedEqualTo(false);
-        return (int)couponUserMapper.countByExample(example);
+        return (int)count(new QueryWrapper<LitemallCouponUser>().eq("user_id", userId).eq("coupon_id", couponId).eq("deleted", false));
     }
 
-    public void add(LitemallCouponUser couponUser) {
-        couponUser.setAddTime(LocalDateTime.now());
-        couponUser.setUpdateTime(LocalDateTime.now());
-        couponUserMapper.insertSelective(couponUser);
-    }
-
-    public List<LitemallCouponUser> queryList(Integer userId, Integer couponId, Short status, Integer page, Integer size, String sort, String order) {
-        LitemallCouponUserExample example = new LitemallCouponUserExample();
-        LitemallCouponUserExample.Criteria criteria = example.createCriteria();
+    public List<LitemallCouponUser> queryList(Integer userId, Integer couponId, Integer status, Integer page, Integer size, String sort, String order) {
+        QueryWrapper<LitemallCouponUser> wrapper = new QueryWrapper<>();
         if (userId != null) {
-            criteria.andUserIdEqualTo(userId);
+            wrapper.eq("user_id", userId);
         }
         if(couponId != null){
-            criteria.andCouponIdEqualTo(couponId);
+            wrapper.eq("coupon_id", couponId);
         }
         if (status != null) {
-            criteria.andStatusEqualTo(status);
+            wrapper.eq("status", status);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
+        if (Objects.isNull(page) || Objects.isNull(size)) {
+            return list(wrapper.orderBy(Boolean.TRUE, "asc".equals(order), sort));
         }
-
-        if (!StringUtils.isEmpty(page) && !StringUtils.isEmpty(size)) {
-            PageHelper.startPage(page, size);
-        }
-
-        return couponUserMapper.selectByExample(example);
+        return paging(wrapper, page, size, sort, order);
     }
 
     public List<LitemallCouponUser> queryAll(Integer userId, Integer couponId) {
@@ -76,25 +54,11 @@ public class LitemallCouponUserService {
         return couponUserList.get(0);
     }
 
-    public LitemallCouponUser findById(Integer id) {
-        return couponUserMapper.selectByPrimaryKey(id);
-    }
-
-
-    public int update(LitemallCouponUser couponUser) {
-        couponUser.setUpdateTime(LocalDateTime.now());
-        return couponUserMapper.updateByPrimaryKeySelective(couponUser);
-    }
-
     public List<LitemallCouponUser> queryExpired() {
-        LitemallCouponUserExample example = new LitemallCouponUserExample();
-        example.or().andStatusEqualTo(CouponUserConstant.STATUS_USABLE).andEndTimeLessThan(LocalDateTime.now()).andDeletedEqualTo(false);
-        return couponUserMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCouponUser>().eq("status", CouponUserConstant.STATUS_USABLE).le("end_time", LocalDateTime.now()).eq("deleted", false));
     }
 
     public List<LitemallCouponUser> findByOid(Integer orderId) {
-        LitemallCouponUserExample example = new LitemallCouponUserExample();
-        example.or().andOrderIdEqualTo(orderId).andDeletedEqualTo(false);
-        return couponUserMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCouponUser>().eq("order_id", orderId).eq("deleted", false));
     }
 }

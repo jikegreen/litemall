@@ -33,11 +33,11 @@ public class AdminDashbordController {
 
     @GetMapping("")
     public Object info() {
-        int userTotal = userService.count();
-        int goodsTotal = goodsService.count();
-        int productTotal = productService.count();
-        int orderTotal = orderService.count();
-        Map<String, Integer> data = new HashMap<>();
+        long userTotal = userService.count();
+        long goodsTotal = goodsService.count();
+        long productTotal = productService.count();
+        long orderTotal = orderService.count();
+        Map<String, Long> data = new HashMap<>();
         data.put("userTotal", userTotal);
         data.put("goodsTotal", goodsTotal);
         data.put("productTotal", productTotal);

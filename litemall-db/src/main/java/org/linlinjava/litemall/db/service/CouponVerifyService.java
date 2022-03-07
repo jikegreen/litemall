@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class CouponVerifyService {
@@ -47,8 +48,8 @@ public class CouponVerifyService {
         }
 
         // 检查是否超期
-        Short timeType = coupon.getTimeType();
-        Short days = coupon.getDays();
+        Integer timeType = coupon.getTimeType();
+        Integer days = coupon.getDays();
         LocalDateTime now = LocalDateTime.now();
         if (timeType.equals(CouponConstant.TIME_TYPE_TIME)) {
             if (now.isBefore(coupon.getStartTime()) || now.isAfter(coupon.getEndTime())) {
@@ -68,8 +69,8 @@ public class CouponVerifyService {
         // 检测商品是否符合
         Map<Integer, List<LitemallCart>> cartMap = new HashMap<>();
         //可使用优惠券的商品或分类
-        List<Integer> goodsValueList = new ArrayList<>(Arrays.asList(coupon.getGoodsValue()));
-        Short goodType = coupon.getGoodsType();
+        List<Integer> goodsValueList = coupon.getGoodsValue().stream().map(Integer::valueOf).collect(Collectors.toList());
+        Integer goodType = coupon.getGoodsType();
 
         if (goodType.equals(CouponConstant.GOODS_TYPE_CATEGORY) ||
                 goodType.equals((CouponConstant.GOODS_TYPE_ARRAY))) {
@@ -101,7 +102,7 @@ public class CouponVerifyService {
         }
 
         // 检测订单状态
-        Short status = coupon.getStatus();
+        Integer status = coupon.getStatus();
         if (!status.equals(CouponConstant.STATUS_NORMAL)) {
             return null;
         }

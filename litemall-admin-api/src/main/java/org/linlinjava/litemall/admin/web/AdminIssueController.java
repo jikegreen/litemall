@@ -77,7 +77,7 @@ public class AdminIssueController {
         if (error != null) {
             return error;
         }
-        if (issueService.updateById(issue) == 0) {
+        if (!issueService.updateById(issue)) {
             return ResponseUtil.updatedDataFailed();
         }
 

@@ -1,96 +1,53 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.linlinjava.litemall.db.dao.LitemallCategoryMapper;
 import org.linlinjava.litemall.db.domain.LitemallCategory;
-import org.linlinjava.litemall.db.domain.LitemallCategoryExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class LitemallCategoryService {
-    @Resource
-    private LitemallCategoryMapper categoryMapper;
-    private LitemallCategory.Column[] CHANNEL = {LitemallCategory.Column.id, LitemallCategory.Column.name, LitemallCategory.Column.iconUrl};
+public class LitemallCategoryService extends CommonService<LitemallCategoryMapper, LitemallCategory> {
+    private String[] CHANNEL = {"id", "name", "icon_url"};
 
     public List<LitemallCategory> queryL1WithoutRecommend(int offset, int limit) {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andLevelEqualTo("L1").andNameNotEqualTo("推荐").andDeletedEqualTo(false);
-        PageHelper.startPage(offset, limit);
-        return categoryMapper.selectByExample(example);
+        Page<LitemallCategory> pa = page(new Page<>(offset, limit), new QueryWrapper<LitemallCategory>().eq("level", "L1").ne("name", "推荐").eq("deleted", false));
+        return pa.getSize()>0? pa.getRecords() : new ArrayList<>();
     }
 
     public List<LitemallCategory> queryL1(int offset, int limit) {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andLevelEqualTo("L1").andDeletedEqualTo(false);
-        PageHelper.startPage(offset, limit);
-        return categoryMapper.selectByExample(example);
+        Page<LitemallCategory> pa = page(new Page<>(offset, limit), new QueryWrapper<LitemallCategory>().eq("level", "L1").eq("deleted", false));
+        return pa.getSize()>0? pa.getRecords() : new ArrayList<>();
     }
 
     public List<LitemallCategory> queryL1() {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andLevelEqualTo("L1").andDeletedEqualTo(false);
-        return categoryMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCategory>().eq("level", "L1").eq("deleted", false));
     }
 
     public List<LitemallCategory> queryByPid(Integer pid) {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andPidEqualTo(pid).andDeletedEqualTo(false);
-        return categoryMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCategory>().eq("pid", pid).eq("deleted", false));
     }
 
     public List<LitemallCategory> queryL2ByIds(List<Integer> ids) {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andIdIn(ids).andLevelEqualTo("L2").andDeletedEqualTo(false);
-        return categoryMapper.selectByExample(example);
-    }
-
-    public LitemallCategory findById(Integer id) {
-        return categoryMapper.selectByPrimaryKey(id);
+        return list(new QueryWrapper<LitemallCategory>().in("id", ids).eq("level", "L2").eq("deleted", false));
     }
 
     public List<LitemallCategory> querySelective(String id, String name, Integer page, Integer size, String sort, String order) {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        LitemallCategoryExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallCategory> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(id)) {
-            criteria.andIdEqualTo(Integer.valueOf(id));
+            wrapper.eq("id", Integer.valueOf(id));
         }
         if (!StringUtils.isEmpty(name)) {
-            criteria.andNameLike("%" + name + "%");
+            wrapper.like("name", name);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, size);
-        return categoryMapper.selectByExample(example);
-    }
-
-    public int updateById(LitemallCategory category) {
-        category.setUpdateTime(LocalDateTime.now());
-        return categoryMapper.updateByPrimaryKeySelective(category);
-    }
-
-    public void deleteById(Integer id) {
-        categoryMapper.logicalDeleteByPrimaryKey(id);
-    }
-
-    public void add(LitemallCategory category) {
-        category.setAddTime(LocalDateTime.now());
-        category.setUpdateTime(LocalDateTime.now());
-        categoryMapper.insertSelective(category);
+        return paging(wrapper, page, size, sort, order);
     }
 
     public List<LitemallCategory> queryChannel() {
-        LitemallCategoryExample example = new LitemallCategoryExample();
-        example.or().andLevelEqualTo("L1").andDeletedEqualTo(false);
-        return categoryMapper.selectByExampleSelective(example, CHANNEL);
+        return list(new QueryWrapper<LitemallCategory>().select(CHANNEL).eq("level", "L1").eq("deleted", false));
     }
 }

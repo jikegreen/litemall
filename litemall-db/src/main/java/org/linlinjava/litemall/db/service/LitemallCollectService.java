@@ -1,84 +1,49 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.linlinjava.litemall.db.dao.LitemallCollectMapper;
 import org.linlinjava.litemall.db.domain.LitemallCollect;
-import org.linlinjava.litemall.db.domain.LitemallCollectExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class LitemallCollectService {
-    @Resource
-    private LitemallCollectMapper collectMapper;
+public class LitemallCollectService extends CommonService<LitemallCollectMapper, LitemallCollect> {
 
     public int count(int uid, byte type, Integer gid) {
-        LitemallCollectExample example = new LitemallCollectExample();
-        example.or().andUserIdEqualTo(uid).andTypeEqualTo(type).andValueIdEqualTo(gid).andDeletedEqualTo(false);
-        return (int) collectMapper.countByExample(example);
+        return (int) count(new QueryWrapper<LitemallCollect>().eq("user_id", uid).eq("type", type).eq("value_id", gid).eq("deleted", false));
     }
 
     public List<LitemallCollect> queryByType(Integer userId, Byte type, Integer page, Integer limit, String sort, String order) {
-        LitemallCollectExample example = new LitemallCollectExample();
-        LitemallCollectExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallCollect> wrapper = new QueryWrapper<>();
         if (type != null) {
-            criteria.andTypeEqualTo(type);
+            wrapper.eq("type", type);
         }
-        criteria.andUserIdEqualTo(userId);
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, limit);
-        return collectMapper.selectByExample(example);
+        wrapper.eq("user_id", userId);
+        return paging(wrapper, page, limit, sort, order);
     }
 
     public int countByType(Integer userId, Byte type) {
-        LitemallCollectExample example = new LitemallCollectExample();
-        example.or().andUserIdEqualTo(userId).andTypeEqualTo(type).andDeletedEqualTo(false);
-        return (int) collectMapper.countByExample(example);
+        return (int) count(new QueryWrapper<LitemallCollect>().eq("user_id", userId).eq("type", type).eq("deleted", false));
     }
 
     public LitemallCollect queryByTypeAndValue(Integer userId, Byte type, Integer valueId) {
-        LitemallCollectExample example = new LitemallCollectExample();
-        example.or().andUserIdEqualTo(userId).andValueIdEqualTo(valueId).andTypeEqualTo(type).andDeletedEqualTo(false);
-        return collectMapper.selectOneByExample(example);
-    }
-
-    public void deleteById(Integer id) {
-        collectMapper.logicalDeleteByPrimaryKey(id);
-    }
-
-    public int add(LitemallCollect collect) {
-        collect.setAddTime(LocalDateTime.now());
-        collect.setUpdateTime(LocalDateTime.now());
-        return collectMapper.insertSelective(collect);
+        return getOne(new QueryWrapper<LitemallCollect>().eq("user_id", userId).eq("type", type).eq("value_id", valueId).eq("deleted", false));
     }
 
     public List<LitemallCollect> querySelective(String userId, String valueId, Integer page, Integer size, String sort, String order) {
-        LitemallCollectExample example = new LitemallCollectExample();
-        LitemallCollectExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallCollect> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(userId)) {
-            criteria.andUserIdEqualTo(Integer.valueOf(userId));
+            wrapper.eq("user_id", Integer.valueOf(userId));
         }
         if (!StringUtils.isEmpty(valueId)) {
-            criteria.andValueIdEqualTo(Integer.valueOf(valueId));
+            wrapper.eq("value_id", Integer.valueOf(valueId));
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, size);
-        return collectMapper.selectByExample(example);
+        return paging(wrapper, page, size, sort, order);
     }
 }

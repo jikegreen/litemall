@@ -1,57 +1,32 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.linlinjava.litemall.db.dao.LitemallSearchHistoryMapper;
 import org.linlinjava.litemall.db.domain.LitemallSearchHistory;
-import org.linlinjava.litemall.db.domain.LitemallSearchHistoryExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallSearchHistoryService {
-    @Resource
-    private LitemallSearchHistoryMapper searchHistoryMapper;
-
-    public void save(LitemallSearchHistory searchHistory) {
-        searchHistory.setAddTime(LocalDateTime.now());
-        searchHistory.setUpdateTime(LocalDateTime.now());
-        searchHistoryMapper.insertSelective(searchHistory);
-    }
-
+public class LitemallSearchHistoryService extends CommonService<LitemallSearchHistoryMapper, LitemallSearchHistory> {
     public List<LitemallSearchHistory> queryByUid(int uid) {
-        LitemallSearchHistoryExample example = new LitemallSearchHistoryExample();
-        example.or().andUserIdEqualTo(uid).andDeletedEqualTo(false);
-        example.setDistinct(true);
-        return searchHistoryMapper.selectByExampleSelective(example, LitemallSearchHistory.Column.keyword);
+        return list(new QueryWrapper<LitemallSearchHistory>().select("DISTINCT keyword as k, *").eq("user_id", uid).eq("deleted", false));
     }
 
     public void deleteByUid(int uid) {
-        LitemallSearchHistoryExample example = new LitemallSearchHistoryExample();
-        example.or().andUserIdEqualTo(uid);
-        searchHistoryMapper.logicalDeleteByExample(example);
+        remove(new UpdateWrapper<LitemallSearchHistory>().eq("user_id", uid));
     }
 
     public List<LitemallSearchHistory> querySelective(String userId, String keyword, Integer page, Integer size, String sort, String order) {
-        LitemallSearchHistoryExample example = new LitemallSearchHistoryExample();
-        LitemallSearchHistoryExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallSearchHistory> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(userId)) {
-            criteria.andUserIdEqualTo(Integer.valueOf(userId));
+            wrapper.eq("user_id", Integer.valueOf(userId));
         }
         if (!StringUtils.isEmpty(keyword)) {
-            criteria.andKeywordLike("%" + keyword + "%");
+            wrapper.like("keyword", keyword);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, size);
-        return searchHistoryMapper.selectByExample(example);
+        return paging(wrapper, page, size, sort, order);
     }
 }

@@ -17,7 +17,6 @@ import org.linlinjava.litemall.db.service.CouponAssignService;
 import org.linlinjava.litemall.db.service.LitemallUserService;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
 import org.linlinjava.litemall.wx.dto.UserInfo;
-import org.linlinjava.litemall.wx.dto.UserToken;
 import org.linlinjava.litemall.wx.dto.WxLoginInfo;
 import org.linlinjava.litemall.wx.service.CaptchaCodeManager;
 import org.linlinjava.litemall.wx.service.UserTokenManager;
@@ -89,7 +88,7 @@ public class WxAuthController {
         // 更新登录情况
         user.setLastLoginTime(LocalDateTime.now());
         user.setLastLoginIp(IpUtil.getIpAddr(request));
-        if (userService.updateById(user) == 0) {
+        if (!userService.updateById(user)) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -144,9 +143,9 @@ public class WxAuthController {
             user.setWeixinOpenid(openId);
             user.setAvatar(userInfo.getAvatarUrl());
             user.setNickname(userInfo.getNickName());
-            user.setGender(userInfo.getGender());
-            user.setUserLevel((byte) 0);
-            user.setStatus((byte) 0);
+            user.setGender(userInfo.getGender().intValue());
+            user.setUserLevel(0);
+            user.setStatus(0);
             user.setLastLoginTime(LocalDateTime.now());
             user.setLastLoginIp(IpUtil.getIpAddr(request));
             user.setSessionKey(sessionKey);
@@ -159,7 +158,7 @@ public class WxAuthController {
             user.setLastLoginTime(LocalDateTime.now());
             user.setLastLoginIp(IpUtil.getIpAddr(request));
             user.setSessionKey(sessionKey);
-            if (userService.updateById(user) == 0) {
+            if (!userService.updateById(user)) {
                 return ResponseUtil.updatedDataFailed();
             }
         }
@@ -300,9 +299,9 @@ public class WxAuthController {
         user.setWeixinOpenid(openId);
         user.setAvatar("https://yanxuan.nosdn.127.net/80841d741d7fa3073e0ae27bf487339f.jpg?imageView&quality=90&thumbnail=64x64");
         user.setNickname(username);
-        user.setGender((byte) 0);
-        user.setUserLevel((byte) 0);
-        user.setStatus((byte) 0);
+        user.setGender(0);
+        user.setUserLevel(0);
+        user.setStatus(0);
         user.setLastLoginTime(LocalDateTime.now());
         user.setLastLoginIp(IpUtil.getIpAddr(request));
         userService.add(user);
@@ -407,7 +406,7 @@ public class WxAuthController {
         String encodedPassword = encoder.encode(password);
         user.setPassword(encodedPassword);
 
-        if (userService.updateById(user) == 0) {
+        if (!userService.updateById(user)) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -460,7 +459,7 @@ public class WxAuthController {
         }
 
         user.setMobile(mobile);
-        if (userService.updateById(user) == 0) {
+        if (!userService.updateById(user)) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -496,13 +495,13 @@ public class WxAuthController {
             user.setAvatar(avatar);
         }
         if(gender != null){
-            user.setGender(gender);
+            user.setGender(gender.intValue());
         }
         if(!StringUtils.isEmpty(nickname)){
             user.setNickname(nickname);
         }
 
-        if (userService.updateById(user) == 0) {
+        if (!userService.updateById(user)) {
             return ResponseUtil.updatedDataFailed();
         }
 
@@ -527,7 +526,7 @@ public class WxAuthController {
         WxMaPhoneNumberInfo phoneNumberInfo = this.wxService.getUserService().getPhoneNoInfo(user.getSessionKey(), encryptedData, iv);
         String phone = phoneNumberInfo.getPhoneNumber();
         user.setMobile(phone);
-        if (userService.updateById(user) == 0) {
+        if (!userService.updateById(user)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok();

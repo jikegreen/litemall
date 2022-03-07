@@ -1,30 +1,30 @@
 package org.linlinjava.litemall.db.service;
 
 import com.alibaba.druid.util.StringUtils;
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import lombok.RequiredArgsConstructor;
 import org.linlinjava.litemall.db.dao.LitemallCouponMapper;
-import org.linlinjava.litemall.db.dao.LitemallCouponUserMapper;
-import org.linlinjava.litemall.db.domain.*;
-import org.linlinjava.litemall.db.domain.LitemallCoupon.Column;
+import org.linlinjava.litemall.db.domain.LitemallCoupon;
+import org.linlinjava.litemall.db.domain.LitemallCouponUser;
 import org.linlinjava.litemall.db.util.CouponConstant;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
-public class LitemallCouponService {
-    @Resource
-    private LitemallCouponMapper couponMapper;
-    @Resource
-    private LitemallCouponUserMapper couponUserMapper;
+@RequiredArgsConstructor
+public class LitemallCouponService extends CommonService<LitemallCouponMapper, LitemallCoupon> {
+    private final LitemallCouponUserService couponUserService;
 
-    private Column[] result = new Column[]{Column.id, Column.name, Column.desc, Column.tag,
-                                            Column.days, Column.startTime, Column.endTime,
-                                            Column.discount, Column.min};
+    private String[] result = {"id", "name", "`desc`", "tag",
+                                            "days", "start_time", "end_time",
+                                            "discount", "min"};
 
     /**
      * 查询，空参数
@@ -36,52 +36,43 @@ public class LitemallCouponService {
      * @return
      */
     public List<LitemallCoupon> queryList(int offset, int limit, String sort, String order) {
-        return queryList(LitemallCouponExample.newAndCreateCriteria(), offset, limit, sort, order);
+        Page<LitemallCoupon> pa = page(new Page<>(offset, limit), new QueryWrapper<LitemallCoupon>().select(result).orderBy(Boolean.TRUE, "asc".equals(order), sort));
+        return pa.getSize()>0? pa.getRecords() : new ArrayList<>();
     }
 
     /**
      * 查询
      *
-     * @param criteria 可扩展的条件
+     * @param
      * @param offset
      * @param limit
      * @param sort
      * @param order
      * @return
      */
-    public List<LitemallCoupon> queryList(LitemallCouponExample.Criteria criteria, int offset, int limit, String sort, String order) {
-        criteria.andTypeEqualTo(CouponConstant.TYPE_COMMON).andStatusEqualTo(CouponConstant.STATUS_NORMAL).andDeletedEqualTo(false);
-        criteria.example().setOrderByClause(sort + " " + order);
-        PageHelper.startPage(offset, limit);
-        return couponMapper.selectByExampleSelective(criteria.example(), result);
+    public List<LitemallCoupon> queryList(QueryWrapper<LitemallCoupon> wrapper, int offset, int limit, String sort, String order) {
+        wrapper.eq("type", CouponConstant.TYPE_COMMON).eq("status", CouponConstant.STATUS_NORMAL).eq("deleted", false);
+        Page<LitemallCoupon> pa = page(new Page<>(offset, limit), wrapper.select(result).orderBy(Boolean.TRUE, "asc".equals(order), sort));
+        return pa.getSize()>0? pa.getRecords() : new ArrayList<>();
     }
 
     public List<LitemallCoupon> queryAvailableList(Integer userId, int offset, int limit) {
         assert userId != null;
         // 过滤掉登录账号已经领取过的coupon
-        LitemallCouponExample.Criteria c = LitemallCouponExample.newAndCreateCriteria();
-        List<LitemallCouponUser> used = couponUserMapper.selectByExample(
-                LitemallCouponUserExample.newAndCreateCriteria().andUserIdEqualTo(userId).example()
-        );
+        QueryWrapper<LitemallCoupon> wrapper = new QueryWrapper<>();
+        List<LitemallCouponUser> used = couponUserService.list(new QueryWrapper<LitemallCouponUser>().eq("user_id", userId));
         if(used!=null && !used.isEmpty()){
-            c.andIdNotIn(used.stream().map(LitemallCouponUser::getCouponId).collect(Collectors.toList()));
+            wrapper.notIn("id", used.stream().map(LitemallCouponUser::getCouponId).collect(Collectors.toList()));
         }
-        return queryList(c, offset, limit, "add_time", "desc");
+        return queryList(wrapper, offset, limit, "add_time", "desc");
     }
 
     public List<LitemallCoupon> queryList(int offset, int limit) {
         return queryList(offset, limit, "add_time", "desc");
     }
 
-    public LitemallCoupon findById(Integer id) {
-        return couponMapper.selectByPrimaryKey(id);
-    }
-
-
     public LitemallCoupon findByCode(String code) {
-        LitemallCouponExample example = new LitemallCouponExample();
-        example.or().andCodeEqualTo(code).andTypeEqualTo(CouponConstant.TYPE_CODE).andStatusEqualTo(CouponConstant.STATUS_NORMAL).andDeletedEqualTo(false);
-        List<LitemallCoupon> couponList =  couponMapper.selectByExample(example);
+        List<LitemallCoupon> couponList =  list(new QueryWrapper<LitemallCoupon>().eq("code", code).eq("type", CouponConstant.TYPE_CODE).eq("Status", CouponConstant.STATUS_NORMAL).eq("deleted", false));
         if(couponList.size() > 1){
             throw new RuntimeException("");
         }
@@ -99,47 +90,21 @@ public class LitemallCouponService {
      * @return
      */
     public List<LitemallCoupon> queryRegister() {
-        LitemallCouponExample example = new LitemallCouponExample();
-        example.or().andTypeEqualTo(CouponConstant.TYPE_REGISTER).andStatusEqualTo(CouponConstant.STATUS_NORMAL).andDeletedEqualTo(false);
-        return couponMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCoupon>().eq("type", CouponConstant.TYPE_REGISTER).eq("status", CouponConstant.STATUS_NORMAL).eq("deleted", false));
     }
 
     public List<LitemallCoupon> querySelective(String name, Short type, Short status, Integer page, Integer limit, String sort, String order) {
-        LitemallCouponExample example = new LitemallCouponExample();
-        LitemallCouponExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallCoupon> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(name)) {
-            criteria.andNameLike("%" + name + "%");
+            wrapper.like("name", name);
         }
         if (type != null) {
-            criteria.andTypeEqualTo(type);
+            wrapper.eq("type", type);
         }
         if (status != null) {
-            criteria.andStatusEqualTo(status);
+            wrapper.eq("status", status);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, limit);
-        return couponMapper.selectByExample(example);
-    }
-
-    public void add(LitemallCoupon coupon) {
-        coupon.setAddTime(LocalDateTime.now());
-        coupon.setUpdateTime(LocalDateTime.now());
-        couponMapper.insertSelective(coupon);
-    }
-
-    public int updateById(LitemallCoupon coupon) {
-        coupon.setUpdateTime(LocalDateTime.now());
-        return couponMapper.updateByPrimaryKeySelective(coupon);
-    }
-
-    public void deleteById(Integer id) {
-        couponMapper.logicalDeleteByPrimaryKey(id);
+        return paging(wrapper, page, limit, sort, order);
     }
 
     private String getRandomNum(Integer num) {
@@ -175,8 +140,6 @@ public class LitemallCouponService {
      * @return
      */
     public List<LitemallCoupon> queryExpired() {
-        LitemallCouponExample example = new LitemallCouponExample();
-        example.or().andStatusEqualTo(CouponConstant.STATUS_NORMAL).andTimeTypeEqualTo(CouponConstant.TIME_TYPE_TIME).andEndTimeLessThan(LocalDateTime.now()).andDeletedEqualTo(false);
-        return couponMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallCoupon>().eq("status", CouponConstant.STATUS_NORMAL).eq("time_type", CouponConstant.TIME_TYPE_TIME).le("end_time", LocalDateTime.now()).eq("deleted", false));
     }
 }

@@ -1,80 +1,41 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.linlinjava.litemall.db.dao.LitemallAddressMapper;
 import org.linlinjava.litemall.db.domain.LitemallAddress;
-import org.linlinjava.litemall.db.domain.LitemallAddressExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallAddressService {
-    @Resource
-    private LitemallAddressMapper addressMapper;
+public class LitemallAddressService extends CommonService<LitemallAddressMapper, LitemallAddress> {
 
     public List<LitemallAddress> queryByUid(Integer uid) {
-        LitemallAddressExample example = new LitemallAddressExample();
-        example.or().andUserIdEqualTo(uid).andDeletedEqualTo(false);
-        return addressMapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallAddress>().eq("user_id", uid).eq("deleted", false));
     }
 
     public LitemallAddress query(Integer userId, Integer id) {
-        LitemallAddressExample example = new LitemallAddressExample();
-        example.or().andIdEqualTo(id).andUserIdEqualTo(userId).andDeletedEqualTo(false);
-        return addressMapper.selectOneByExample(example);
-    }
-
-    public int add(LitemallAddress address) {
-        address.setAddTime(LocalDateTime.now());
-        address.setUpdateTime(LocalDateTime.now());
-        return addressMapper.insertSelective(address);
-    }
-
-    public int update(LitemallAddress address) {
-        address.setUpdateTime(LocalDateTime.now());
-        return addressMapper.updateByPrimaryKeySelective(address);
-    }
-
-    public void delete(Integer id) {
-        addressMapper.logicalDeleteByPrimaryKey(id);
+        return getOne(new QueryWrapper<LitemallAddress>().eq("id", id).eq("user_id", userId).eq("deleted", false));
     }
 
     public LitemallAddress findDefault(Integer userId) {
-        LitemallAddressExample example = new LitemallAddressExample();
-        example.or().andUserIdEqualTo(userId).andIsDefaultEqualTo(true).andDeletedEqualTo(false);
-        return addressMapper.selectOneByExample(example);
+        return getOne(new QueryWrapper<LitemallAddress>().eq("user_id", userId).eq("deleted", false).eq("is_default", true));
     }
 
     public void resetDefault(Integer userId) {
-        LitemallAddress address = new LitemallAddress();
-        address.setIsDefault(false);
-        address.setUpdateTime(LocalDateTime.now());
-        LitemallAddressExample example = new LitemallAddressExample();
-        example.or().andUserIdEqualTo(userId).andDeletedEqualTo(false);
-        addressMapper.updateByExampleSelective(address, example);
+        update(new UpdateWrapper<LitemallAddress>().set("is_default", false).eq("user_id", userId).eq("deleted", false));
     }
 
     public List<LitemallAddress> querySelective(Integer userId, String name, Integer page, Integer limit, String sort, String order) {
-        LitemallAddressExample example = new LitemallAddressExample();
-        LitemallAddressExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallAddress> wrapper = new QueryWrapper<>();
         if (userId != null) {
-            criteria.andUserIdEqualTo(userId);
+            wrapper.eq("user_id", userId);
         }
         if (!StringUtils.isEmpty(name)) {
-            criteria.andNameLike("%" + name + "%");
+            wrapper.like("name", name);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, limit);
-        return addressMapper.selectByExample(example);
+        return paging(wrapper, page, limit, sort, order);
     }
 }

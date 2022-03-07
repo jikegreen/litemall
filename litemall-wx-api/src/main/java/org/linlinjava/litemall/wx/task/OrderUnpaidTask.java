@@ -59,7 +59,7 @@ public class OrderUnpaidTask extends Task {
         List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(orderId);
         for (LitemallOrderGoods orderGoods : orderGoodsList) {
             Integer productId = orderGoods.getProductId();
-            Short number = orderGoods.getNumber();
+            Integer number = orderGoods.getNumber();
             if (productService.addStock(productId, number) == 0) {
                 throw new RuntimeException("商品货品库存增加失败");
             }

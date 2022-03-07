@@ -1,93 +1,58 @@
 package org.linlinjava.litemall.db.service;
 
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import org.linlinjava.litemall.db.dao.LitemallCommentMapper;
 import org.linlinjava.litemall.db.domain.LitemallComment;
-import org.linlinjava.litemall.db.domain.LitemallCommentExample;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallCommentService {
-    @Resource
-    private LitemallCommentMapper commentMapper;
+public class LitemallCommentService extends CommonService<LitemallCommentMapper, LitemallComment> {
 
-    public List<LitemallComment> queryGoodsByGid(Integer id, int offset, int limit) {
-        LitemallCommentExample example = new LitemallCommentExample();
-        example.setOrderByClause(LitemallComment.Column.addTime.desc());
-        example.or().andValueIdEqualTo(id).andTypeEqualTo((byte) 0).andDeletedEqualTo(false);
-        PageHelper.startPage(offset, limit);
-        return commentMapper.selectByExample(example);
+    public Page<LitemallComment> queryGoodsByGid(Integer id, int offset, int limit) {
+        Page<LitemallComment> pa = page(new Page<>(offset, limit), new QueryWrapper<LitemallComment>().eq("value_id", id).eq("type", 0).eq("deleted", false).orderBy(Boolean.TRUE, false, "add_time"));
+        return pa;
     }
 
     public List<LitemallComment> query(Byte type, Integer valueId, Integer showType, Integer offset, Integer limit) {
-        LitemallCommentExample example = new LitemallCommentExample();
-        example.setOrderByClause(LitemallComment.Column.addTime.desc());
+        QueryWrapper<LitemallComment> wrapper = new QueryWrapper<>();
         if (showType == 0) {
-            example.or().andValueIdEqualTo(valueId).andTypeEqualTo(type).andDeletedEqualTo(false);
+            wrapper.eq("value_id", valueId).eq("type", type).eq("deleted", false);
         } else if (showType == 1) {
-            example.or().andValueIdEqualTo(valueId).andTypeEqualTo(type).andHasPictureEqualTo(true).andDeletedEqualTo(false);
+            wrapper.eq("value_id", valueId).eq("type", type).eq("deleted", false).eq("has_picture", true);
         } else {
             throw new RuntimeException("showType不支持");
         }
-        PageHelper.startPage(offset, limit);
-        return commentMapper.selectByExample(example);
+        return paging(wrapper, offset, limit, null, null, Boolean.TRUE);
     }
 
     public int count(Byte type, Integer valueId, Integer showType) {
-        LitemallCommentExample example = new LitemallCommentExample();
+        QueryWrapper<LitemallComment> wrapper = new QueryWrapper<>();
         if (showType == 0) {
-            example.or().andValueIdEqualTo(valueId).andTypeEqualTo(type).andDeletedEqualTo(false);
+            wrapper.eq("value_id", valueId).eq("type", type).eq("deleted", false);
         } else if (showType == 1) {
-            example.or().andValueIdEqualTo(valueId).andTypeEqualTo(type).andHasPictureEqualTo(true).andDeletedEqualTo(false);
+            wrapper.eq("value_id", valueId).eq("type", type).eq("deleted", false).eq("has_picture", true);
         } else {
             throw new RuntimeException("showType不支持");
         }
-        return (int) commentMapper.countByExample(example);
-    }
-
-    public int save(LitemallComment comment) {
-        comment.setAddTime(LocalDateTime.now());
-        comment.setUpdateTime(LocalDateTime.now());
-        return commentMapper.insertSelective(comment);
+        return (int) count(wrapper);
     }
 
     public List<LitemallComment> querySelective(String userId, String valueId, Integer page, Integer size, String sort, String order) {
-        LitemallCommentExample example = new LitemallCommentExample();
-        LitemallCommentExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallComment> wrapper = new QueryWrapper<>();
         // type=2 是订单商品回复，这里过滤
-        criteria.andTypeNotEqualTo((byte) 2);
+        wrapper.ne("type", 2);
 
         if (!StringUtils.isEmpty(userId)) {
-            criteria.andUserIdEqualTo(Integer.valueOf(userId));
+            wrapper.eq("user_id", Integer.valueOf(userId));
         }
         if (!StringUtils.isEmpty(valueId)) {
-            criteria.andValueIdEqualTo(Integer.valueOf(valueId)).andTypeEqualTo((byte) 0);
+            wrapper.eq("value_id", Integer.valueOf(valueId)).eq("type", (byte) 0);
         }
-        criteria.andDeletedEqualTo(false);
-
-        if (!StringUtils.isEmpty(sort) && !StringUtils.isEmpty(order)) {
-            example.setOrderByClause(sort + " " + order);
-        }
-
-        PageHelper.startPage(page, size);
-        return commentMapper.selectByExample(example);
+        return paging(wrapper, page, size, sort, order);
     }
 
-    public void deleteById(Integer id) {
-        commentMapper.logicalDeleteByPrimaryKey(id);
-    }
-
-    public LitemallComment findById(Integer id) {
-        return commentMapper.selectByPrimaryKey(id);
-    }
-
-    public int updateById(LitemallComment comment) {
-        return commentMapper.updateByPrimaryKeySelective(comment);
-    }
 }

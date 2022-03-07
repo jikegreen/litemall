@@ -118,7 +118,7 @@ public class AdminCategoryController {
             return error;
         }
 
-        if (categoryService.updateById(category) == 0) {
+        if (!categoryService.updateById(category)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok();

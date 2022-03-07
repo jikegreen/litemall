@@ -38,7 +38,7 @@ public class AdminRegionController {
         List<RegionVo> regionVoList = new ArrayList<>();
 
         List<LitemallRegion> litemallRegions = regionService.getAll();
-        Map<Byte, List<LitemallRegion>> collect = litemallRegions.stream().collect(Collectors.groupingBy(LitemallRegion::getType));
+        Map<Integer, List<LitemallRegion>> collect = litemallRegions.stream().collect(Collectors.groupingBy(LitemallRegion::getType));
         byte provinceType = 1;
         List<LitemallRegion> provinceList = collect.get(provinceType);
         byte cityType = 2;
@@ -53,7 +53,7 @@ public class AdminRegionController {
             provinceVO.setId(province.getId());
             provinceVO.setName(province.getName());
             provinceVO.setCode(province.getCode());
-            provinceVO.setType(province.getType());
+            provinceVO.setType(province.getType().byteValue());
 
             List<LitemallRegion> cityList = cityListMap.get(province.getId());
             List<RegionVo> cityVOList = new ArrayList<>();
@@ -62,7 +62,7 @@ public class AdminRegionController {
                 cityVO.setId(cityVo.getId());
                 cityVO.setName(cityVo.getName());
                 cityVO.setCode(cityVo.getCode());
-                cityVO.setType(cityVo.getType());
+                cityVO.setType(cityVo.getType().byteValue());
 
                 List<LitemallRegion> areaList = areaListMap.get(cityVo.getId());
                 List<RegionVo> areaVOList = new ArrayList<>();
@@ -71,7 +71,7 @@ public class AdminRegionController {
                     areaVO.setId(area.getId());
                     areaVO.setName(area.getName());
                     areaVO.setCode(area.getCode());
-                    areaVO.setType(area.getType());
+                    areaVO.setType(area.getType().byteValue());
                     areaVOList.add(areaVO);
                 }
 

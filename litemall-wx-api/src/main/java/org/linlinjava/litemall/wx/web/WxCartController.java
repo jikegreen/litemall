@@ -15,7 +15,10 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.linlinjava.litemall.wx.util.WxResponseCode.GOODS_NO_STOCK;
 import static org.linlinjava.litemall.wx.util.WxResponseCode.GOODS_UNSHELVE;
@@ -163,8 +166,8 @@ public class WxCartController {
             if (num > product.getNumber()) {
                 return ResponseUtil.fail(GOODS_NO_STOCK, "库存不足");
             }
-            existCart.setNumber((short) num);
-            if (cartService.updateById(existCart) == 0) {
+            existCart.setNumber(num);
+            if (!cartService.updateById(existCart)) {
                 return ResponseUtil.updatedDataFailed();
             }
         }
@@ -237,8 +240,8 @@ public class WxCartController {
             if (num > product.getNumber()) {
                 return ResponseUtil.fail(GOODS_NO_STOCK, "库存不足");
             }
-            existCart.setNumber((short) num);
-            if (cartService.updateById(existCart) == 0) {
+            existCart.setNumber(num);
+            if (!cartService.updateById(existCart)) {
                 return ResponseUtil.updatedDataFailed();
             }
         }
@@ -296,8 +299,8 @@ public class WxCartController {
             return ResponseUtil.fail(GOODS_UNSHELVE, "库存不足");
         }
 
-        existCart.setNumber(number.shortValue());
-        if (cartService.updateById(existCart) == 0) {
+        existCart.setNumber(number);
+        if (!cartService.updateById(existCart)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok();

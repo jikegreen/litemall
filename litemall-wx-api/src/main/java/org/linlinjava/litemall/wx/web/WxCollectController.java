@@ -124,7 +124,7 @@ public class WxCollectController {
             collect = new LitemallCollect();
             collect.setUserId(userId);
             collect.setValueId(valueId);
-            collect.setType(type);
+            collect.setType(Integer.valueOf(type));
             collectService.add(collect);
         }
 

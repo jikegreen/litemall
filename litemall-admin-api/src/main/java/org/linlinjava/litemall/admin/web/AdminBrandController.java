@@ -85,7 +85,7 @@ public class AdminBrandController {
         if (error != null) {
             return error;
         }
-        if (brandService.updateById(brand) == 0) {
+        if (!brandService.updateById(brand)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok(brand);

@@ -74,7 +74,7 @@ public class AdminKeywordController {
         if (error != null) {
             return error;
         }
-        if (keywordService.updateById(keyword) == 0) {
+        if (!keywordService.updateById(keyword)) {
             return ResponseUtil.updatedDataFailed();
         }
         return ResponseUtil.ok(keyword);

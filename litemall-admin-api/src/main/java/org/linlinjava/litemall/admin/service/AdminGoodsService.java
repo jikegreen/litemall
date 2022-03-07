@@ -109,8 +109,8 @@ public class AdminGoodsService {
                 return ResponseUtil.badArgument();
             }
 
-            String[] productSpecifications = product.getSpecifications();
-            if (productSpecifications.length == 0) {
+            List<String> productSpecifications = product.getSpecifications();
+            if (productSpecifications.size() == 0) {
                 return ResponseUtil.badArgument();
             }
         }
@@ -165,9 +165,9 @@ public class AdminGoodsService {
             }
         }
         goods.setRetailPrice(retailPrice);
-        
+
         // 商品基本信息表litemall_goods
-        if (goodsService.updateById(goods) == 0) {
+        if (!goodsService.updateById(goods)) {
             throw new RuntimeException("更新数据失败");
         }
 
@@ -262,7 +262,7 @@ public class AdminGoodsService {
         String url = qCodeService.createGoodShareImage(goods.getId().toString(), goods.getPicUrl(), goods.getName());
         if (!StringUtils.isEmpty(url)) {
             goods.setShareUrl(url);
-            if (goodsService.updateById(goods) == 0) {
+            if (!goodsService.updateById(goods)) {
                 throw new RuntimeException("更新数据失败");
             }
         }

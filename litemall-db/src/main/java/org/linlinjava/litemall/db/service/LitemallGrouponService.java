@@ -1,21 +1,16 @@
 package org.linlinjava.litemall.db.service;
 
 import com.alibaba.druid.util.StringUtils;
-import com.github.pagehelper.PageHelper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.linlinjava.litemall.db.dao.LitemallGrouponMapper;
 import org.linlinjava.litemall.db.domain.LitemallGroupon;
-import org.linlinjava.litemall.db.domain.LitemallGrouponExample;
 import org.linlinjava.litemall.db.util.GrouponConstant;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-public class LitemallGrouponService {
-    @Resource
-    private LitemallGrouponMapper mapper;
+public class LitemallGrouponService extends CommonService<LitemallGrouponMapper, LitemallGroupon> {
 
     /**
      * 获取用户发起的团购记录
@@ -24,10 +19,7 @@ public class LitemallGrouponService {
      * @return
      */
     public List<LitemallGroupon> queryMyGroupon(Integer userId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andUserIdEqualTo(userId).andCreatorUserIdEqualTo(userId).andGrouponIdEqualTo(0).andStatusNotEqualTo(GrouponConstant.STATUS_NONE).andDeletedEqualTo(false);
-        example.orderBy("add_time desc");
-        return mapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallGroupon>().eq("user_id", userId).eq("creator_user_id", userId).eq("groupon_id", 0).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false).orderByDesc("add_time"));
     }
 
     /**
@@ -37,10 +29,7 @@ public class LitemallGrouponService {
      * @return
      */
     public List<LitemallGroupon> queryMyJoinGroupon(Integer userId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andUserIdEqualTo(userId).andGrouponIdNotEqualTo(0).andStatusNotEqualTo(GrouponConstant.STATUS_NONE).andDeletedEqualTo(false);
-        example.orderBy("add_time desc");
-        return mapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallGroupon>().eq("user_id", userId).ne("groupon_id", 0).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false).orderByDesc("add_time"));
     }
 
     /**
@@ -50,9 +39,7 @@ public class LitemallGrouponService {
      * @return
      */
     public LitemallGroupon queryByOrderId(Integer orderId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andOrderIdEqualTo(orderId).andDeletedEqualTo(false);
-        return mapper.selectOneByExample(example);
+        return getOne(new QueryWrapper<LitemallGroupon>().eq("order_id", orderId).eq("deleted", false));
     }
 
     /**
@@ -62,10 +49,7 @@ public class LitemallGrouponService {
      * @return
      */
     public List<LitemallGroupon> queryJoinRecord(Integer id) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andGrouponIdEqualTo(id).andStatusNotEqualTo(GrouponConstant.STATUS_NONE).andDeletedEqualTo(false);
-        example.orderBy("add_time desc");
-        return mapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallGroupon>().eq("groupon_id", 0).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false).orderByDesc("add_time"));
     }
 
     /**
@@ -75,9 +59,7 @@ public class LitemallGrouponService {
      * @return
      */
     public LitemallGroupon queryById(Integer id) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andIdEqualTo(id).andDeletedEqualTo(false);
-        return mapper.selectOneByExample(example);
+        return findById(id, Boolean.FALSE);
     }
 
     /**
@@ -88,9 +70,7 @@ public class LitemallGrouponService {
      * @return
      */
     public LitemallGroupon queryById(Integer userId, Integer id) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andIdEqualTo(id).andUserIdEqualTo(userId).andDeletedEqualTo(false);
-        return mapper.selectOneByExample(example);
+        return findById(id, Boolean.FALSE);
     }
 
     /**
@@ -100,20 +80,11 @@ public class LitemallGrouponService {
      * @return
      */
     public int countGroupon(Integer grouponId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andGrouponIdEqualTo(grouponId).andStatusNotEqualTo(GrouponConstant.STATUS_NONE).andDeletedEqualTo(false);
-        return (int) mapper.countByExample(example);
+        return (int) count(new QueryWrapper<LitemallGroupon>().eq("groupon_id", grouponId).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false));
     }
 
     public boolean hasJoin(Integer userId, Integer grouponId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andUserIdEqualTo(userId).andGrouponIdEqualTo(grouponId).andStatusNotEqualTo(GrouponConstant.STATUS_NONE).andDeletedEqualTo(false);
-        return  mapper.countByExample(example) != 0;
-    }
-
-    public int updateById(LitemallGroupon groupon) {
-        groupon.setUpdateTime(LocalDateTime.now());
-        return mapper.updateByPrimaryKeySelective(groupon);
+        return count(new QueryWrapper<LitemallGroupon>().eq("user_id", userId).eq("groupon_id", grouponId).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false))>0;
     }
 
     /**
@@ -122,10 +93,8 @@ public class LitemallGrouponService {
      * @param groupon
      * @return
      */
-    public int createGroupon(LitemallGroupon groupon) {
-        groupon.setAddTime(LocalDateTime.now());
-        groupon.setUpdateTime(LocalDateTime.now());
-        return mapper.insertSelective(groupon);
+    public void createGroupon(LitemallGroupon groupon) {
+        add(groupon);
     }
 
 
@@ -140,23 +109,15 @@ public class LitemallGrouponService {
      * @return
      */
     public List<LitemallGroupon> querySelective(String rulesId, Integer page, Integer size, String sort, String order) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        LitemallGrouponExample.Criteria criteria = example.createCriteria();
-
+        QueryWrapper<LitemallGroupon> wrapper = new QueryWrapper<>();
         if (!StringUtils.isEmpty(rulesId)) {
-            criteria.andRulesIdEqualTo(Integer.parseInt(rulesId));
+            wrapper.eq("rules_id", Integer.parseInt(rulesId));
         }
-        criteria.andDeletedEqualTo(false);
-        criteria.andStatusNotEqualTo(GrouponConstant.STATUS_NONE);
-        criteria.andGrouponIdEqualTo(0);
-
-        PageHelper.startPage(page, size);
-        return mapper.selectByExample(example);
+        wrapper.eq("groupon_id", 0).ne("status", GrouponConstant.STATUS_NONE).eq("deleted", false);
+        return paging(wrapper, page, size, sort, order);
     }
 
     public List<LitemallGroupon> queryByRuleId(int grouponRuleId) {
-        LitemallGrouponExample example = new LitemallGrouponExample();
-        example.or().andRulesIdEqualTo(grouponRuleId).andDeletedEqualTo(false);
-        return mapper.selectByExample(example);
+        return list(new QueryWrapper<LitemallGroupon>().eq("rules_id", grouponRuleId).eq("deleted", false));
     }
 }

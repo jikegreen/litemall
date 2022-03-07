@@ -12,9 +12,7 @@ import org.linlinjava.litemall.wx.service.HomeCacheManager;
 import org.linlinjava.litemall.wx.service.WxGrouponRuleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -192,5 +190,25 @@ public class WxHomeController {
         about.put("longitude", SystemConfig.getMallLongitude());
         about.put("latitude", SystemConfig.getMallLatitude());
         return ResponseUtil.ok(about);
+    }
+
+    /**
+     * 新品
+     * @return 分页数据
+     */
+    @GetMapping("/page/{type}")
+    public Object page(@PathVariable String type, @RequestParam Integer page) {
+        Object re = new ArrayList<>();
+        switch (type) {
+            case "new":
+                re = goodsService.pageByNew(page, SystemConfig.getNewLimit());
+                break;
+            case "hot":
+                re = goodsService.pageByHot(page, SystemConfig.getHotLimit());
+                break;
+            default:
+                break;
+        }
+        return ResponseUtil.ok(re);
     }
 }
