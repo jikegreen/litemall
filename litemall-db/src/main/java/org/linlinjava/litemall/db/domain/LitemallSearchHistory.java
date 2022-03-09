@@ -1,9 +1,6 @@
 package org.linlinjava.litemall.db.domain;
 
-import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
-import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.*;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -37,6 +34,7 @@ public class LitemallSearchHistory implements Serializable {
     /**
      * 搜索来源，如pc、wx、app
      */
+    @TableField("`from`")
     private String from;
 
     /**

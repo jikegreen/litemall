@@ -39,12 +39,12 @@ public class AdminRegionController {
 
         List<LitemallRegion> litemallRegions = regionService.getAll();
         Map<Integer, List<LitemallRegion>> collect = litemallRegions.stream().collect(Collectors.groupingBy(LitemallRegion::getType));
-        byte provinceType = 1;
+        Integer provinceType = 1;
         List<LitemallRegion> provinceList = collect.get(provinceType);
-        byte cityType = 2;
+        Integer cityType = 2;
         List<LitemallRegion> city = collect.get(cityType);
         Map<Integer, List<LitemallRegion>> cityListMap = city.stream().collect(Collectors.groupingBy(LitemallRegion::getPid));
-        byte areaType = 3;
+        Integer areaType = 3;
         List<LitemallRegion> areas = collect.get(areaType);
         Map<Integer, List<LitemallRegion>> areaListMap = areas.stream().collect(Collectors.groupingBy(LitemallRegion::getPid));
 
